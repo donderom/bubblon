@@ -25,7 +25,7 @@ type closeMsg struct {
 // ErrNilModel is returned when attempting to initialize a Controller with a nil model.
 var ErrNilModel = errors.New("model cannot be nil")
 
-// Open is command to push a new model onto the stack.
+// Open is a command to push a new model onto the stack.
 // The new model will become the active model receiving updates and rendering.
 func Open(model tea.Model) tea.Cmd {
 	return Cmd(openMsg{model: model})
@@ -115,7 +115,8 @@ func (c Controller) View() string {
 	return ""
 }
 
-// Cmd wraps a tea.Msg as a tea.Cmd.
+// Cmd is a helper function that wraps a tea.Msg as a tea.Cmd.
+// Should be used only for static messages.
 func Cmd(msg tea.Msg) tea.Cmd {
 	return func() tea.Msg { return msg }
 }
