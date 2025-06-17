@@ -1,4 +1,4 @@
-name: golangci-lint
+name: lint
 on:
   push:
   pull_request:
@@ -9,14 +9,18 @@ permissions:
   # pull-requests: read
 
 jobs:
-  golangci:
-    name: lint
+  lint:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
         with:
           go-version: stable
+
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v8
         with:
