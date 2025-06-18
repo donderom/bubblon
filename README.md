@@ -1,3 +1,5 @@
+<div align="center">
+
 # Bubblon
 
 [![Release](https://img.shields.io/github/v/release/donderom/bubblon.svg?style=flat-square&color=019aca)](https://github.com/donderom/bubblon/releases)
@@ -6,9 +8,8 @@
 [![License](https://img.shields.io/badge/license-MIT-fec4e2?style=flat-square)](https://github.com/donderom/bubblon/blob/main/LICENSE)
 [![ReportCard](https://goreportcard.com/badge/github.com/donderom/bubblon?style=flat-square)](https://goreportcard.com/report/donderom/bubblon)
 
-<p align="center">
-  <img src="logo.png" width="200" alt="The Bubblon Logo">
-</p>
+<img src="logo.png" width="200" alt="The Bubblon Logo">
+</div>
 
 Bubblon is a solution for managing nested [Bubble Tea](https://github.com/charmbracelet/bubbletea) models (or views/screens). This is a common use case in TUIs—for example, navigating from a main list to a sublist when an item is selected. The "canonical" way to structure this is with a view-switching model, where you keep track which view you're in (e.g., `main` or `sub`) and what item is selected, then render the appropriate model(s) for that view.
 
