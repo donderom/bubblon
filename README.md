@@ -4,6 +4,11 @@
   <img src="logo.png" width="200" alt="The Bubblon Logo">
 </p>
 
+[![Release](https://img.shields.io/github/release/donderom/bubblon.svg)](https://github.com/donderom/bubblon/releases)
+[![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://pkg.go.dev/github.com/donderom/bubblon)
+[![build](https://github.com/donderom/bubblon/actions/workflows/build.yml/badge.svg)](https://github.com/donderom/bubblon/actions/workflows/build.yml)
+[![ReportCard](https://goreportcard.com/badge/donderom/bubblon)](https://goreportcard.com/report/donderom/bubblon)
+
 Bubblon is a solution for managing nested [Bubble Tea](https://github.com/charmbracelet/bubbletea) models (or views/screens). This is a common use case in TUIs—for example, navigating from a main list to a sublist when an item is selected. The "canonical" way to structure this is with a view-switching model, where you keep track which view you're in (e.g., `main` or `sub`) and what item is selected, then render the appropriate model(s) for that view.
 
  By contrast, Bubblon uses a "model stack" architecture, where the controller determines the current model. Instead of bloating a single `Model` with state for everything, you encapsulate each view in its own `tea.Model` with its own `Update()`, `View()`, and logic. The controller then pushes/pops models on a stack as the user navigates.
