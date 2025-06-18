@@ -1,10 +1,10 @@
 # Bubblon
 
-[![Release](https://img.shields.io/github/release/donderom/bubblon.svg)](https://github.com/donderom/bubblon/releases)
-[![GoDoc](https://godoc.org/github.com/golang/gddo?status.svg)](https://pkg.go.dev/github.com/donderom/bubblon)
-[![build](https://github.com/donderom/bubblon/actions/workflows/build.yml/badge.svg)](https://github.com/donderom/bubblon/actions/workflows/build.yml)
-[![ReportCard](https://goreportcard.com/badge/donderom/bubblon)](https://goreportcard.com/report/donderom/bubblon)
-[![License](https://img.shields.io/github/license/donderom/bubblon)](https://github.com/donderom/bubblon/blob/main/LICENSE)
+[![Release](https://img.shields.io/github/v/release/donderom/bubblon.svg?style=flat-square&color=019aca)](https://github.com/donderom/bubblon/releases)
+[![GoDoc](https://img.shields.io/badge/go.dev-docs-01ade3?style=flat-square&logo=go)](https://pkg.go.dev/github.com/donderom/bubblon)
+[![Build](https://img.shields.io/github/actions/workflow/status/donderom/bubblon/build.yml?style=flat-square&logo=github&color=b199da)](https://github.com/donderom/bubblon/actions/workflows/build.yml)
+[![License](https://img.shields.io/badge/license-MIT-fec4e2?style=flat-square)](https://github.com/donderom/bubblon/blob/main/LICENSE)
+[![ReportCard](https://goreportcard.com/badge/github.com/donderom/bubblon?style=flat-square)](https://goreportcard.com/report/donderom/bubblon)
 
 <p align="center">
   <img src="logo.png" width="200" alt="The Bubblon Logo">
