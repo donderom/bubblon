@@ -21,6 +21,20 @@ Bubblon is a solution for managing nested [Bubble Tea](https://github.com/charmb
 * 🧠 **Easier to reason about**, especially when state gets complex.
 * 🚫 **No new interfaces**: Keeps complexity low by avoiding new abstractions.
 
+## Installation
+
+To install Bubblon, use `go get`:
+
+```sh
+go get github.com/donderom/bubblon
+```
+
+Import the `bubblon` package into your code:
+
+```sh
+import "github.com/donderom/bubblon"
+```
+
 ## Example
 To run the controller, update the Bubble Tea program initialization from:
 
