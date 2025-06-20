@@ -11,15 +11,17 @@
 <img src="logo.png" width="200" alt="The Bubblon Logo">
 </div>
 
-Bubblon is a solution for managing nested [Bubble Tea](https://github.com/charmbracelet/bubbletea) models (or views/screens). This is a common use case in TUIs—for example, navigating from a main list to a sublist when an item is selected. The "canonical" way to structure this is with a view-switching model, where you keep track which view you're in (e.g., `main` or `sub`) and what item is selected, then render the appropriate model(s) for that view.
+Bubblon is a solution for managing nested [Bubble Tea](https://github.com/charmbracelet/bubbletea) models (or views/screens). This is a typical use case in TUIs, such as navigating from a main list to a sublist when an item is selected. The "canonical" way to structure this is with a [view-switching model](https://www.youtube.com/watch?v=uJ2egAkSkjg), where you keep track which view you're in (e.g., `main` or `sub`) and what item is selected, then render the appropriate model(s) for that view.
 
  By contrast, Bubblon uses a "model stack" architecture, where the controller determines the current model. Instead of bloating a single `Model` with state for everything, you encapsulate each view in its own `tea.Model` with its own `Update()`, `View()`, and logic. The controller then pushes/pops models on a stack as the user navigates.
 
-### Benefits
-* 📦 **Modular**: Each view is self-contained.
-* 🔁 **Reusability** of sub-models.
-* 🧠 **Easier to reason about**, especially when state gets complex.
-* 🚫 **No new interfaces**: Keeps complexity low by avoiding new abstractions.
+### Features
+* **Modular**: Each view is self-contained. Rendering another model is one line away.
+* **Reusability** of sub-models due to way less coupling between models.
+* **Easier to reason about**, especially when state gets complex. Instead of adding more and more state to manage, it can be passed to the new model so that each model is responsible only for its own state.
+* **No new interfaces**: Keeps complexity low by avoiding new abstractions (the models should implement the `tea.Model` interface only).
+
+Note that the stack approach is suitable only for "fullscreen" views or views that render on top of each other.
 
 ## Installation
 
