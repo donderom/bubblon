@@ -2,6 +2,7 @@ package bubblon_test
 
 import (
 	"bytes"
+	"errors"
 	"io"
 	"testing"
 	"time"
@@ -19,6 +20,8 @@ const (
 	defaultView          = "view"
 	secondView           = "view 2"
 )
+
+var err = errors.New("fail")
 
 type viewUpdateMsg struct{}
 
@@ -204,6 +207,21 @@ func TestReplace(t *testing.T) {
 	assert.Equal(t, secondView, m2.view)
 	require.NoError(t, tm.Quit())
 	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second))
+}
+
+func TestFail(t *testing.T) {
+	t.Parallel()
+
+	c := newController()
+	require.NoError(t, c.Err)
+
+	tm := teatest.NewTestModel(t, c)
+	tm.Send(bubblon.Fail(err)())
+	tm.WaitFinished(t, teatest.WithFinalTimeout(defaultDuration))
+	fm := tm.FinalModel(t)
+	m, ok := fm.(bubblon.Controller)
+	assert.True(t, ok)
+	assert.Equal(t, err, m.Err)
 }
 
 func waitForView(t *testing.T, output io.Reader, view string) {

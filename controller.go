@@ -22,6 +22,12 @@ type closeMsg struct {
 	notify bool
 }
 
+// failMsg is an internal message for setting the error in the controller
+// before quitting the app.
+type failMsg struct {
+	err error
+}
+
 // ErrNilModel is returned when attempting to initialize a Controller with a nil model.
 var ErrNilModel = errors.New("model cannot be nil")
 
@@ -42,11 +48,18 @@ func Replace(model tea.Model) tea.Cmd {
 	return tea.Sequence(Cmd(closeMsg{notify: false}), Open(model))
 }
 
+// Fail is a command to propagate the error to the controller and quit the app.
+func Fail(err error) tea.Cmd {
+	return Cmd(failMsg{err: err})
+}
+
 // Controller implements a stack-based navigation model for Bubble Tea apps.
 // It manages a stack of tea.Model instances, where only the top model receives
-// updates and renders.
+// updates and renders. In case of the Fail message, Err is set to the error
+// from the message.
 type Controller struct {
 	models []tea.Model
+	Err    error
 }
 
 // Ensure Controller implements the tea.Model interface.
@@ -56,7 +69,7 @@ var _ tea.Model = Controller{}
 // Returns an error if the model is nil.
 func New(model tea.Model) (Controller, error) {
 	if model != nil {
-		return Controller{models: []tea.Model{model}}, nil
+		return Controller{models: []tea.Model{model}, Err: nil}, nil
 	}
 
 	return Controller{}, ErrNilModel
@@ -92,6 +105,12 @@ func (c Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return c, tea.WindowSize()
 		}
+
+	case failMsg:
+		c.models = nil
+		c.Err = msg.err
+
+		return c, tea.Quit
 
 	default:
 		if top := c.top(); top != nil {
