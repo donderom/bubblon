@@ -16,6 +16,7 @@ Bubblon is a solution for managing nested [Bubble Tea](https://github.com/charmb
  By contrast, Bubblon uses a "model stack" architecture, where the controller determines the current model. Instead of bloating a single `Model` with state for everything, you encapsulate each view in its own `tea.Model` with its own `Update()`, `View()`, and logic. The controller then pushes/pops models on a stack as the user navigates.
 
 ### Features
+
 * **Modular**: Each view is self-contained. Rendering another model is one line away.
 * **Reusability** of sub-models due to way less coupling between models.
 * **Easier to reason about**, especially when state gets complex. Instead of adding more and more state to manage, it can be passed to the new model so that each model is responsible only for its own state.
@@ -37,7 +38,8 @@ Import the `bubblon` package into your code:
 import "github.com/donderom/bubblon"
 ```
 
-## Example
+## Usage
+
 To run the controller, update the Bubble Tea program initialization from:
 
 ```go
@@ -77,6 +79,36 @@ func (m SubModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 When the `SubModel` is closed, the `MainModel` will receive a `bubblon.Closed` message.
 
 The whole navigation is based on these two commands.
+
+### Error propagation
+
+Sending the `bubblon.Fail` message will cause the app to exit and populate the `Err` field, which can be accessed after the program terminates for logging, etc.
+
+From any model managed by `bubblon`:
+
+```go
+func (m SomeModel) Update(msg tea.Msg) (tea.Mode, tea.Cmd) {
+...
+	err := ...
+	if err != nil {
+		return m, bubblon.Fail(err)
+	}
+}
+```
+
+Handle the error after program termination:
+
+```go
+import "github.com/donderom/bubblon"
+
+controller, _ := bubblon.New(SomeModel.New())
+program := tea.NewProgram(controller, tea.WithAltScreen())
+m, _ := p.Run()
+
+if m, ok := m.(bubblon.Controller); ok && m.Err != nil {
+	log.Fatal(m.Err)
+}
+```
 
 ## License
 
