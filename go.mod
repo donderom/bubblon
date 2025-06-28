@@ -1,6 +1,6 @@
 module github.com/donderom/bubblon
 
-go 1.24.3
+go 1.23.0
 
 require (
 	github.com/charmbracelet/bubbletea v1.3.5
