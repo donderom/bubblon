@@ -110,6 +110,18 @@ if m, ok := m.(bubblon.Controller); ok && m.Err != nil {
 }
 ```
 
+### Send a message on open/close
+
+To send a message to a newly opened model or to the parent model after closing a nested one, use the regular `tea.Sequence` command:
+
+```go
+return m, tea.Sequence(bubblon.Open(model), messageOnOpen)
+```
+
+```go
+return m, tea.Sequence(bubblon.Close, messageOnClose)
+```
+
 ## License
 
 [MIT](https://github.com/donderom/bubblon/raw/main/LICENSE)
