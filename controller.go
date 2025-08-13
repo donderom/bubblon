@@ -17,9 +17,12 @@ type openMsg struct {
 }
 
 // closeMsg is an internal message for closing the top model.
-// notify indicates if the Closed message will be sent.
-type closeMsg struct {
-	notify bool
+type closeMsg struct{}
+
+// replaceMsg is an internal message for replacing the top model
+// with a new one.
+type replaceMsg struct {
+	model tea.Model
 }
 
 // failMsg is an internal message for setting the error in the controller
@@ -40,12 +43,12 @@ func Open(model tea.Model) tea.Cmd {
 // Close is a command instructing bubblon to close the current model.
 // A notification to the parent model is sent on closure.
 func Close() tea.Msg {
-	return closeMsg{notify: true}
+	return closeMsg{}
 }
 
 // Replace combines closing the current model and opening a new one in a single command.
 func Replace(model tea.Model) tea.Cmd {
-	return tea.Sequence(Cmd(closeMsg{notify: false}), Open(model))
+	return Cmd(replaceMsg{model: model})
 }
 
 // Fail is a command to propagate the error to the controller and quit the app.
@@ -99,12 +102,13 @@ func (c Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		c.pop()
 
 		if len(c.models) > 0 {
-			if msg.notify {
-				return c, tea.Batch(Cmd(Closed{}), tea.WindowSize())
-			}
-
-			return c, tea.WindowSize()
+			return c, tea.Batch(Cmd(Closed{}), tea.WindowSize())
 		}
+
+	case replaceMsg:
+		c.pop()
+
+		return c.Update(openMsg{model: msg.model})
 
 	case failMsg:
 		c.models = nil
