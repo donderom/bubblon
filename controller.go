@@ -108,7 +108,7 @@ func (c Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case replaceMsg:
 		c.pop()
 
-		return c.Update(openMsg{model: msg.model})
+		return c.Update(openMsg(msg))
 
 	case failMsg:
 		c.models = nil
