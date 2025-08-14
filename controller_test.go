@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"io"
+	"strconv"
 	"testing"
 	"time"
 
@@ -33,6 +34,10 @@ type replaceModelMsg struct {
 	model tea.Model
 }
 
+type replaceAllMsg struct {
+	model tea.Model
+}
+
 type model struct {
 	view string
 	init bool
@@ -53,6 +58,9 @@ func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case replaceModelMsg:
 		return m, bubblon.Replace(msg.model)
+
+	case replaceAllMsg:
+		return m, bubblon.ReplaceAll(msg.model)
 
 	case viewUpdateMsg:
 		m.view += " updated"
@@ -205,6 +213,30 @@ func TestReplace(t *testing.T) {
 	tm.Send(replaceModelMsg{m3})
 	waitForView(t, tm.Output(), view3)
 	assert.Equal(t, secondView, m2.view)
+
+	tm.Send(bubblon.Close())
+	waitForView(t, tm.Output(), defaultView+" closed")
+
+	require.NoError(t, tm.Quit())
+	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second))
+}
+
+func TestReplaceAll(t *testing.T) {
+	t.Parallel()
+
+	c := newController()
+	m2 := newModel(secondView)
+	models := 3
+
+	tm := teatest.NewTestModel(t, c)
+	for i := range models {
+		tm.Send(openModelMsg{newModel(strconv.Itoa(i))})
+	}
+	waitForView(t, tm.Output(), strconv.Itoa(models-1))
+
+	tm.Send(replaceAllMsg{m2})
+	waitForView(t, tm.Output(), secondView)
+
 	require.NoError(t, tm.Quit())
 	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second))
 }

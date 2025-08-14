@@ -25,6 +25,12 @@ type replaceMsg struct {
 	model tea.Model
 }
 
+// replaceAllMsg is an internal message for closing all the models
+// and opening a new one.
+type replaceAllMsg struct {
+	model tea.Model
+}
+
 // failMsg is an internal message for setting the error in the controller
 // before quitting the app.
 type failMsg struct {
@@ -49,6 +55,11 @@ func Close() tea.Msg {
 // Replace combines closing the current model and opening a new one in a single command.
 func Replace(model tea.Model) tea.Cmd {
 	return Cmd(replaceMsg{model: model})
+}
+
+// ReplaceAll closes all the models and opens a new one in a single command.
+func ReplaceAll(model tea.Model) tea.Cmd {
+	return Cmd(replaceAllMsg{model: model})
 }
 
 // Fail is a command to propagate the error to the controller and quit the app.
@@ -107,6 +118,14 @@ func (c Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case replaceMsg:
 		c.pop()
+
+		return c.Update(openMsg(msg))
+
+	case replaceAllMsg:
+		for i := range c.models {
+			c.models[i] = nil
+		}
+		c.models = c.models[:0]
 
 		return c.Update(openMsg(msg))
 
