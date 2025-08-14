@@ -80,6 +80,27 @@ When the `SubModel` is closed, the `MainModel` will receive a `bubblon.Closed` m
 
 The whole navigation is based on these two commands.
 
+### Model replacement
+
+The `bubblon.Replace` command replaces the current model with a new one:
+
+```go
+func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+...
+  return m, bubblon.Replace(newModel)
+```
+
+It can be thought of as a combination of `bubblon.Close` followed by `bubblon.Open`, but it's internally optimized for performance.
+
+While `bubblon.Replace` replaces only the current model, `bubblon.ReplaceAll` replaces all models with a new one:
+
+```go
+
+func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+...
+  return m, bubblon.ReplaceAll(newModel)
+```
+
 ### Error propagation
 
 Sending the `bubblon.Fail` message will cause the app to exit and populate the `Err` field, which can be accessed after the program terminates for logging, etc.
