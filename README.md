@@ -143,6 +143,12 @@ return m, tea.Sequence(bubblon.Open(model), messageOnOpen)
 return m, tea.Sequence(bubblon.Close, messageOnClose)
 ```
 
+## Used By
+
+- [sqwat](https://github.com/donderom/sqwat) - A TUI editor for files in the Stanford Question Answering Dataset (SQuAD) format.
+
+> Know a project using this library? [Open a pull request](https://github.com/donderom/bubblon/pulls) and add it here!
+
 ## License
 
 [MIT](https://github.com/donderom/bubblon/raw/main/LICENSE)
