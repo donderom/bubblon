@@ -2,6 +2,7 @@ package bubblon_test
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"io"
 	"strconv"
@@ -254,6 +255,24 @@ func TestFail(t *testing.T) {
 	m, ok := fm.(bubblon.Controller)
 	assert.True(t, ok)
 	assert.Equal(t, err, m.Err)
+}
+
+func TestInterrupt(t *testing.T) {
+	t.Parallel()
+
+	done := make(chan error, 1)
+	ctx, cancel := context.WithTimeout(context.Background(), defaultDuration)
+	defer cancel()
+	p := tea.NewProgram(newController(), tea.WithAltScreen(), tea.WithContext(ctx))
+	go func() {
+		_, err := p.Run()
+		done <- err
+	}()
+
+	p.Send(bubblon.Close())
+	p.Send(tea.KeyMsg{Type: tea.KeyCtrlC})
+	assert.Error(t, <-done)
+	assert.Nil(t, ctx.Err())
 }
 
 func waitForView(t *testing.T, output io.Reader, view string) {

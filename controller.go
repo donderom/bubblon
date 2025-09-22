@@ -142,6 +142,13 @@ func (c Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			return c, cmd
 		}
+
+		// Be able to kill the program if there are no models left
+		if key, ok := msg.(tea.KeyMsg); ok {
+			if key.Type == tea.KeyBreak {
+				return c, tea.Interrupt
+			}
+		}
 	}
 
 	return c, nil
