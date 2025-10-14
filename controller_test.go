@@ -27,18 +27,6 @@ var err = errors.New("fail")
 
 type viewUpdateMsg struct{}
 
-type openModelMsg struct {
-	model tea.Model
-}
-
-type replaceModelMsg struct {
-	model tea.Model
-}
-
-type replaceAllMsg struct {
-	model tea.Model
-}
-
 type model struct {
 	view string
 	init bool
@@ -53,16 +41,7 @@ func (m *model) Init() tea.Cmd {
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 
-	switch msg := msg.(type) {
-	case openModelMsg:
-		return m, bubblon.Open(msg.model)
-
-	case replaceModelMsg:
-		return m, bubblon.Replace(msg.model)
-
-	case replaceAllMsg:
-		return m, bubblon.ReplaceAll(msg.model)
-
+	switch msg.(type) {
 	case viewUpdateMsg:
 		m.view += " updated"
 
@@ -126,7 +105,7 @@ func TestOpen(t *testing.T) {
 
 		// Open a new model and init it immediately
 		tm := teatest.NewTestModel(t, c)
-		tm.Send(openModelMsg{m2})
+		tm.Send(bubblon.Open(m2)())
 		waitForView(t, tm.Output(), secondView)
 		assert.True(t, m2.init)
 
@@ -178,7 +157,7 @@ func TestClose(t *testing.T) {
 		m2 := newModel(secondView)
 
 		tm := teatest.NewTestModel(t, c)
-		tm.Send(openModelMsg{m2})
+		tm.Send(bubblon.Open(m2)())
 		waitForView(t, tm.Output(), secondView)
 
 		tm.Send(bubblon.Close())
@@ -210,8 +189,8 @@ func TestReplace(t *testing.T) {
 	m3 := newModel(view3)
 
 	tm := teatest.NewTestModel(t, c)
-	tm.Send(openModelMsg{m2})
-	tm.Send(replaceModelMsg{m3})
+	tm.Send(bubblon.Open(m2)())
+	tm.Send(bubblon.Replace(m3)())
 	waitForView(t, tm.Output(), view3)
 	assert.Equal(t, secondView, m2.view)
 
@@ -231,11 +210,11 @@ func TestReplaceAll(t *testing.T) {
 
 	tm := teatest.NewTestModel(t, c)
 	for i := range models {
-		tm.Send(openModelMsg{newModel(strconv.Itoa(i))})
+		tm.Send(bubblon.Open(newModel("tempview " + strconv.Itoa(i)))())
 	}
-	waitForView(t, tm.Output(), strconv.Itoa(models-1))
+	waitForView(t, tm.Output(), "tempview "+strconv.Itoa(models-1))
 
-	tm.Send(replaceAllMsg{m2})
+	tm.Send(bubblon.ReplaceAll(m2)())
 	waitForView(t, tm.Output(), secondView)
 
 	require.NoError(t, tm.Quit())
