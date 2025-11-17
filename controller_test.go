@@ -19,7 +19,7 @@ import (
 const (
 	defaultCheckInterval = 20 * time.Millisecond
 	defaultDuration      = 3 * time.Second
-	defaultView          = "view"
+	defaultView          = "view 1"
 	secondView           = "view 2"
 )
 
