@@ -15,6 +15,8 @@ Bubblon is a solution for managing nested [Bubble Tea](https://github.com/charmb
 
  By contrast, Bubblon uses a "model stack" architecture, where the controller determines the current model. Instead of bloating a single `Model` with state for everything, you encapsulate each view in its own `tea.Model` with its own `Update()`, `View()`, and logic. The controller then pushes/pops models on a stack as the user navigates.
 
+Read [the blog post](https://donderom.com/posts/managing-nested-models-with-bubble-tea/) for a more architectural point of view.
+
 ### Features
 
 * **Modular**: Each view is self-contained. Rendering another model is one line away.
