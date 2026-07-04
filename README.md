@@ -6,7 +6,6 @@
 [![GoDoc](https://img.shields.io/badge/go.dev-docs-01ade3?style=flat-square&logo=go)](https://pkg.go.dev/github.com/donderom/bubblon)
 [![Build](https://img.shields.io/github/actions/workflow/status/donderom/bubblon/build.yml?style=flat-square&logo=github&color=b199da)](https://github.com/donderom/bubblon/actions/workflows/build.yml)
 [![License](https://img.shields.io/badge/license-MIT-fec4e2?style=flat-square)](https://github.com/donderom/bubblon/blob/main/LICENSE)
-[![ReportCard](https://goreportcard.com/badge/github.com/donderom/bubblon?style=flat-square)](https://goreportcard.com/report/donderom/bubblon)
 
 <img src="logo.png" width="200" alt="The Bubblon Logo">
 </div>
