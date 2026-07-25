@@ -1,55 +1,56 @@
 package bubblon_test
 
 import (
-	"bytes"
 	"context"
 	"errors"
-	"io"
 	"strconv"
 	"testing"
 	"time"
 
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/x/exp/teatest"
 	"github.com/donderom/bubblon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
 const (
-	defaultCheckInterval = 20 * time.Millisecond
-	defaultDuration      = 3 * time.Second
-	defaultView          = "view 1"
-	secondView           = "view 2"
+	defaultDuration = 3 * time.Second
+	defaultView     = "view 1"
+	secondView      = "view 2"
+	updatedPrefix   = " updated"
+	closedPrefix    = " closed"
 )
 
 var err = errors.New("fail")
 
 type viewUpdateMsg struct{}
+type readyMsg struct{}
 
 type model struct {
-	view string
-	init bool
+	ready chan struct{}
+	view  string
+	init  bool
 }
 
 func (m *model) Init() tea.Cmd {
 	m.init = true
 
-	return nil
+	return bubblon.Cmd(readyMsg{})
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-
 	switch msg.(type) {
+	case readyMsg:
+		close(m.ready)
+
 	case viewUpdateMsg:
-		m.view += " updated"
+		m.view += updatedPrefix
 
 	case bubblon.Closed:
-		m.view += " closed"
+		m.view += closedPrefix
 	}
 
-	return m, cmd
+	return m, nil
 }
 
 func (m *model) View() string {
@@ -79,16 +80,13 @@ func TestInitialModel(t *testing.T) {
 
 	m := newDefaultModel()
 	c, _ := bubblon.New(m)
+	c.Init()
 
-	tm := teatest.NewTestModel(t, c)
-	waitForView(t, tm.Output(), defaultView)
+	assert.Equal(t, defaultView, c.View())
 	assert.True(t, m.init)
 
-	tm.Send(viewUpdateMsg{})
-	waitForView(t, tm.Output(), defaultView+" updated")
-
-	require.NoError(t, tm.Quit())
-	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second))
+	cm, _ := c.Update(viewUpdateMsg{})
+	assert.Equal(t, updated(defaultView), cm.View())
 }
 
 func TestOpen(t *testing.T) {
@@ -104,29 +102,25 @@ func TestOpen(t *testing.T) {
 		m2 := newModel(secondView)
 
 		// Open a new model and init it immediately
-		tm := teatest.NewTestModel(t, c)
-		tm.Send(bubblon.Open(m2)())
-		waitForView(t, tm.Output(), secondView)
+		cm, _ := c.Update(bubblon.Open(m2)())
+		assert.Equal(t, secondView, cm.View())
 		assert.True(t, m2.init)
 
 		// Update only the new model
-		tm.Send(viewUpdateMsg{})
-		waitForView(t, tm.Output(), secondView+" updated")
-		assert.Equal(t, secondView+" updated", m2.view)
+		cm, _ = cm.Update(viewUpdateMsg{})
+		assert.Equal(t, updated(secondView), cm.View())
+		assert.Equal(t, updated(secondView), m2.view)
 
 		// The first model is not updated
 		assert.Equal(t, defaultView, m1.view)
-
-		require.NoError(t, tm.Quit())
-		tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second))
 	})
 
 	t.Run("nil model", func(t *testing.T) {
 		t.Parallel()
 
 		c := newController()
-		c2, cmd := c.Update(bubblon.Open(nil)())
-		assert.Equal(t, defaultView, c2.View())
+		cm, cmd := c.Update(bubblon.Open(nil)())
+		assert.Equal(t, defaultView, cm.View())
 		assert.Nil(t, cmd)
 	})
 }
@@ -140,43 +134,38 @@ func TestClose(t *testing.T) {
 		c := newController()
 		assert.Equal(t, defaultView, c.View())
 
-		c2, cmd := c.Update(bubblon.Close())
+		cm, cmd := c.Update(bubblon.Close())
 		// No more models - no more messages
 		assert.Nil(t, cmd)
-		assert.Empty(t, c2.View())
+		assert.Empty(t, cm.View())
 
-		c2, _ = c2.Update(viewUpdateMsg{})
-		assert.Empty(t, c2.View())
+		cm, _ = cm.Update(viewUpdateMsg{})
+		assert.Empty(t, cm.View())
 	})
 
 	t.Run("new model", func(t *testing.T) {
 		t.Parallel()
 
 		c := newController()
-
 		m2 := newModel(secondView)
 
-		tm := teatest.NewTestModel(t, c)
-		tm.Send(bubblon.Open(m2)())
-		waitForView(t, tm.Output(), secondView)
+		cm, _ := c.Update(bubblon.Open(m2)())
+		assert.Equal(t, secondView, cm.View())
 
-		tm.Send(bubblon.Close())
 		// The parent model should be notified that model closed
-		waitForView(t, tm.Output(), defaultView+" closed")
-
-		require.NoError(t, tm.Quit())
-		tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second))
+		cm = closeModel(cm)
+		assert.Equal(t, closed(defaultView), cm.View())
 	})
 
 	t.Run("multiple times", func(t *testing.T) {
 		t.Parallel()
 
 		c := newController()
-		c2, _ := c.Update(bubblon.Close())
+		cm, _ := c.Update(bubblon.Close())
 
-		assert.NotPanics(t, func() { c2.Update(bubblon.Close()) })
-		assert.NotPanics(t, func() { c2.Update(bubblon.Close()) })
-		assert.Empty(t, c2.View())
+		assert.NotPanics(t, func() { cm.Update(bubblon.Close()) })
+		assert.NotPanics(t, func() { cm.Update(bubblon.Close()) })
+		assert.Empty(t, cm.View())
 	})
 }
 
@@ -188,17 +177,13 @@ func TestReplace(t *testing.T) {
 	view3 := "view 3"
 	m3 := newModel(view3)
 
-	tm := teatest.NewTestModel(t, c)
-	tm.Send(bubblon.Open(m2)())
-	tm.Send(bubblon.Replace(m3)())
-	waitForView(t, tm.Output(), view3)
+	cm, _ := c.Update(bubblon.Open(m2)())
+	cm, _ = cm.Update(bubblon.Replace(m3)())
+	assert.Equal(t, view3, cm.View())
 	assert.Equal(t, secondView, m2.view)
 
-	tm.Send(bubblon.Close())
-	waitForView(t, tm.Output(), defaultView+" closed")
-
-	require.NoError(t, tm.Quit())
-	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second))
+	cm = closeModel(cm)
+	assert.Equal(t, closed(defaultView), cm.View())
 }
 
 func TestReplaceAll(t *testing.T) {
@@ -207,33 +192,35 @@ func TestReplaceAll(t *testing.T) {
 	c := newController()
 	m2 := newModel(secondView)
 	models := 3
+	tempSuffix := "tempview "
 
-	tm := teatest.NewTestModel(t, c)
+	var cm tea.Model = c
 	for i := range models {
-		tm.Send(bubblon.Open(newModel("tempview " + strconv.Itoa(i)))())
+		cm, _ = cm.Update(bubblon.Open(newModel(tempSuffix + strconv.Itoa(i)))())
 	}
-	waitForView(t, tm.Output(), "tempview "+strconv.Itoa(models-1))
+	assert.Equal(t, tempSuffix+strconv.Itoa(models-1), cm.View())
 
-	tm.Send(bubblon.ReplaceAll(m2)())
-	waitForView(t, tm.Output(), secondView)
-
-	require.NoError(t, tm.Quit())
-	tm.WaitFinished(t, teatest.WithFinalTimeout(time.Second))
+	cm, _ = cm.Update(bubblon.Replace(m2)())
+	assert.Equal(t, secondView, cm.View())
 }
 
 func TestFail(t *testing.T) {
 	t.Parallel()
 
-	c := newController()
+	m := newDefaultModel()
+	c, _ := bubblon.New(m)
+	p := tea.NewProgram(c)
 	require.NoError(t, c.Err)
 
-	tm := teatest.NewTestModel(t, c)
-	tm.Send(bubblon.Fail(err)())
-	tm.WaitFinished(t, teatest.WithFinalTimeout(defaultDuration))
-	fm := tm.FinalModel(t)
-	m, ok := fm.(bubblon.Controller)
+	go func() {
+		<-m.ready
+		p.Send(bubblon.Fail(err)())
+	}()
+
+	fm, _ := p.Run()
+	fc, ok := fm.(bubblon.Controller)
 	assert.True(t, ok)
-	assert.Equal(t, err, m.Err)
+	assert.Equal(t, err, fc.Err)
 }
 
 func TestInterrupt(t *testing.T) {
@@ -242,11 +229,15 @@ func TestInterrupt(t *testing.T) {
 	done := make(chan error, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), defaultDuration)
 	defer cancel()
-	p := tea.NewProgram(newController(), tea.WithAltScreen(), tea.WithContext(ctx))
+	m := newDefaultModel()
+	c, _ := bubblon.New(m)
+	p := tea.NewProgram(c, tea.WithAltScreen(), tea.WithContext(ctx))
 	go func() {
 		_, err := p.Run()
 		done <- err
 	}()
+
+	<-m.ready
 
 	p.Send(bubblon.Close())
 	p.Send(tea.KeyMsg{Type: tea.KeyCtrlC})
@@ -254,21 +245,11 @@ func TestInterrupt(t *testing.T) {
 	assert.Nil(t, ctx.Err())
 }
 
-func waitForView(t *testing.T, output io.Reader, view string) {
-	t.Helper()
-
-	checkInterval := teatest.WithCheckInterval(defaultCheckInterval)
-	duration := teatest.WithDuration(defaultDuration)
-
-	teatest.WaitFor(t, output, func(bts []byte) bool {
-		return bytes.Contains(bts, []byte(view))
-	}, checkInterval, duration)
-}
-
 func newModel(view string) *model {
 	return &model{
-		view: view,
-		init: false,
+		ready: make(chan struct{}),
+		view:  view,
+		init:  false,
 	}
 }
 
@@ -280,4 +261,25 @@ func newController() bubblon.Controller {
 	c, _ := bubblon.New(newDefaultModel())
 
 	return c
+}
+
+func updated(view string) string {
+	return view + updatedPrefix
+}
+
+func closed(view string) string {
+	return view + closedPrefix
+}
+
+func closeModel(ctrl tea.Model) tea.Model {
+	ctrl, cmd := ctrl.Update(bubblon.Close())
+
+	switch msg := cmd().(type) {
+	case tea.BatchMsg:
+		for _, subcmd := range msg {
+			ctrl, _ = ctrl.Update(subcmd())
+		}
+	}
+
+	return ctrl
 }
