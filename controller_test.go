@@ -203,12 +203,18 @@ func TestFail(t *testing.T) {
 	t.Parallel()
 
 	c := newController()
+	p := tea.NewProgram(c)
 	require.NoError(t, c.Err)
 
-	cm, cmd := c.Update(bubblon.Fail(err)())
-	assert.IsType(t, tea.QuitMsg{}, cmd())
+	final := make(chan tea.Model, 1)
+	go func() {
+		fm, _ := p.Run()
+		final <- fm
+	}()
 
-	fc, ok := cm.(bubblon.Controller)
+	p.Send(bubblon.Fail(err)())
+	fm := <-final
+	fc, ok := fm.(bubblon.Controller)
 	assert.True(t, ok)
 	assert.Equal(t, err, fc.Err)
 }
@@ -219,8 +225,7 @@ func TestInterrupt(t *testing.T) {
 	done := make(chan error, 1)
 	ctx, cancel := context.WithTimeout(context.Background(), defaultDuration)
 	defer cancel()
-	m := newDefaultModel()
-	c, _ := bubblon.New(m)
+	c := newController()
 	p := tea.NewProgram(c, tea.WithAltScreen(), tea.WithContext(ctx))
 	go func() {
 		_, err := p.Run()
