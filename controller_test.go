@@ -206,7 +206,7 @@ func TestFail(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultDuration)
 	defer cancel()
 	c := newController()
-	p := tea.NewProgram(c, tea.WithContext(ctx))
+	p := tea.NewProgram(c, tea.WithAltScreen(), tea.WithContext(ctx))
 	require.NoError(t, c.Err)
 
 	go func() {
