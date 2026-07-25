@@ -24,25 +24,20 @@ const (
 var err = errors.New("fail")
 
 type viewUpdateMsg struct{}
-type readyMsg struct{}
 
 type model struct {
-	ready chan struct{}
-	view  string
-	init  bool
+	view string
+	init bool
 }
 
 func (m *model) Init() tea.Cmd {
 	m.init = true
 
-	return bubblon.Cmd(readyMsg{})
+	return nil
 }
 
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
-	case readyMsg:
-		close(m.ready)
-
 	case viewUpdateMsg:
 		m.view += updatedPrefix
 
@@ -207,18 +202,13 @@ func TestReplaceAll(t *testing.T) {
 func TestFail(t *testing.T) {
 	t.Parallel()
 
-	m := newDefaultModel()
-	c, _ := bubblon.New(m)
-	p := tea.NewProgram(c)
+	c := newController()
 	require.NoError(t, c.Err)
 
-	go func() {
-		<-m.ready
-		p.Send(bubblon.Fail(err)())
-	}()
+	cm, cmd := c.Update(bubblon.Fail(err)())
+	assert.IsType(t, tea.QuitMsg{}, cmd())
 
-	fm, _ := p.Run()
-	fc, ok := fm.(bubblon.Controller)
+	fc, ok := cm.(bubblon.Controller)
 	assert.True(t, ok)
 	assert.Equal(t, err, fc.Err)
 }
@@ -237,8 +227,6 @@ func TestInterrupt(t *testing.T) {
 		done <- err
 	}()
 
-	<-m.ready
-
 	p.Send(bubblon.Close())
 	p.Send(tea.KeyMsg{Type: tea.KeyCtrlC})
 	assert.Error(t, <-done)
@@ -247,9 +235,8 @@ func TestInterrupt(t *testing.T) {
 
 func newModel(view string) *model {
 	return &model{
-		ready: make(chan struct{}),
-		view:  view,
-		init:  false,
+		view: view,
+		init: false,
 	}
 }
 
