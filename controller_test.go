@@ -202,24 +202,15 @@ func TestReplaceAll(t *testing.T) {
 func TestFail(t *testing.T) {
 	t.Parallel()
 
-	final := make(chan tea.Model, 1)
-	ctx, cancel := context.WithTimeout(context.Background(), defaultDuration)
-	defer cancel()
 	c := newController()
-	p := tea.NewProgram(c, tea.WithAltScreen(), tea.WithContext(ctx))
 	require.NoError(t, c.Err)
 
-	go func() {
-		fm, _ := p.Run()
-		final <- fm
-	}()
+	cm, cmd := c.Update(bubblon.Fail(err)())
+	assert.IsType(t, tea.QuitMsg{}, cmd())
 
-	p.Send(bubblon.Fail(err)())
-	fm := <-final
-	fc, ok := fm.(bubblon.Controller)
+	fc, ok := cm.(bubblon.Controller)
 	assert.True(t, ok)
 	assert.Equal(t, err, fc.Err)
-	assert.Nil(t, ctx.Err())
 }
 
 func TestInterrupt(t *testing.T) {
