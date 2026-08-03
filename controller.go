@@ -4,7 +4,7 @@ package bubblon
 import (
 	"errors"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 // Closed is a message sent to the parent model indicating that the top
@@ -106,14 +106,14 @@ func (c Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.model != nil {
 			c.push(msg.model)
 
-			return c, tea.Batch(msg.model.Init(), tea.WindowSize())
+			return c, tea.Batch(msg.model.Init(), tea.RequestWindowSize)
 		}
 
 	case closeMsg:
 		c.pop()
 
 		if len(c.models) > 0 {
-			return c, tea.Batch(Cmd(Closed{}), tea.WindowSize())
+			return c, tea.Batch(Cmd(Closed{}), tea.RequestWindowSize)
 		}
 
 	case replaceMsg:
@@ -144,8 +144,8 @@ func (c Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		// Be able to kill the program if there are no models left
-		if key, ok := msg.(tea.KeyMsg); ok {
-			if key.Type == tea.KeyBreak {
+		if key, ok := msg.(tea.KeyPressMsg); ok {
+			if key.Code == 'c' && key.Mod == tea.ModCtrl {
 				return c, tea.Interrupt
 			}
 		}
@@ -156,12 +156,12 @@ func (c Controller) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // View renders the view of the top model on the stack.
 // Returns an empty string if there is no model.
-func (c Controller) View() string {
+func (c Controller) View() tea.View {
 	if top := c.top(); top != nil {
 		return c.top().View()
 	}
 
-	return ""
+	return tea.NewView("")
 }
 
 // Cmd is a helper function that wraps a tea.Msg as a tea.Cmd.

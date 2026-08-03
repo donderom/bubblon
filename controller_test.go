@@ -3,11 +3,12 @@ package bubblon_test
 import (
 	"context"
 	"errors"
+	"io"
 	"strconv"
 	"testing"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/donderom/bubblon"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -26,7 +27,7 @@ var err = errors.New("fail")
 type viewUpdateMsg struct{}
 
 type model struct {
-	view string
+	view tea.View
 	init bool
 }
 
@@ -39,16 +40,16 @@ func (m *model) Init() tea.Cmd {
 func (m *model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg.(type) {
 	case viewUpdateMsg:
-		m.view += updatedPrefix
+		m.view.Content += updatedPrefix
 
 	case bubblon.Closed:
-		m.view += closedPrefix
+		m.view.Content += closedPrefix
 	}
 
 	return m, nil
 }
 
-func (m *model) View() string {
+func (m *model) View() tea.View {
 	return m.view
 }
 
@@ -77,7 +78,7 @@ func TestInitialModel(t *testing.T) {
 	c, _ := bubblon.New(m)
 	c.Init()
 
-	assert.Equal(t, defaultView, c.View())
+	assert.Equal(t, tea.NewView(defaultView), c.View())
 	assert.True(t, m.init)
 
 	cm, _ := c.Update(viewUpdateMsg{})
@@ -98,7 +99,7 @@ func TestOpen(t *testing.T) {
 
 		// Open a new model and init it immediately
 		cm, _ := c.Update(bubblon.Open(m2)())
-		assert.Equal(t, secondView, cm.View())
+		assert.Equal(t, tea.NewView(secondView), cm.View())
 		assert.True(t, m2.init)
 
 		// Update only the new model
@@ -107,7 +108,7 @@ func TestOpen(t *testing.T) {
 		assert.Equal(t, updated(secondView), m2.view)
 
 		// The first model is not updated
-		assert.Equal(t, defaultView, m1.view)
+		assert.Equal(t, tea.NewView(defaultView), m1.view)
 	})
 
 	t.Run("nil model", func(t *testing.T) {
@@ -115,7 +116,7 @@ func TestOpen(t *testing.T) {
 
 		c := newController()
 		cm, cmd := c.Update(bubblon.Open(nil)())
-		assert.Equal(t, defaultView, cm.View())
+		assert.Equal(t, tea.NewView(defaultView), cm.View())
 		assert.Nil(t, cmd)
 	})
 }
@@ -127,7 +128,7 @@ func TestClose(t *testing.T) {
 		t.Parallel()
 
 		c := newController()
-		assert.Equal(t, defaultView, c.View())
+		assert.Equal(t, tea.NewView(defaultView), c.View())
 
 		cm, cmd := c.Update(bubblon.Close())
 		// No more models - no more messages
@@ -145,7 +146,7 @@ func TestClose(t *testing.T) {
 		m2 := newModel(secondView)
 
 		cm, _ := c.Update(bubblon.Open(m2)())
-		assert.Equal(t, secondView, cm.View())
+		assert.Equal(t, tea.NewView(secondView), cm.View())
 
 		// The parent model should be notified that model closed
 		cm = closeModel(cm)
@@ -174,8 +175,8 @@ func TestReplace(t *testing.T) {
 
 	cm, _ := c.Update(bubblon.Open(m2)())
 	cm, _ = cm.Update(bubblon.Replace(m3)())
-	assert.Equal(t, view3, cm.View())
-	assert.Equal(t, secondView, m2.view)
+	assert.Equal(t, tea.NewView(view3), cm.View())
+	assert.Equal(t, tea.NewView(secondView), m2.view)
 
 	cm = closeModel(cm)
 	assert.Equal(t, closed(defaultView), cm.View())
@@ -193,10 +194,10 @@ func TestReplaceAll(t *testing.T) {
 	for i := range models {
 		cm, _ = cm.Update(bubblon.Open(newModel(tempSuffix + strconv.Itoa(i)))())
 	}
-	assert.Equal(t, tempSuffix+strconv.Itoa(models-1), cm.View())
+	assert.Equal(t, tea.NewView(tempSuffix+strconv.Itoa(models-1)), cm.View())
 
 	cm, _ = cm.Update(bubblon.Replace(m2)())
-	assert.Equal(t, secondView, cm.View())
+	assert.Equal(t, tea.NewView(secondView), cm.View())
 }
 
 func TestFail(t *testing.T) {
@@ -220,21 +221,21 @@ func TestInterrupt(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), defaultDuration)
 	defer cancel()
 	c := newController()
-	p := tea.NewProgram(c, tea.WithAltScreen(), tea.WithContext(ctx))
+	p := tea.NewProgram(c, tea.WithContext(ctx), tea.WithOutput(io.Discard))
 	go func() {
 		_, err := p.Run()
 		done <- err
 	}()
 
 	p.Send(bubblon.Close())
-	p.Send(tea.KeyMsg{Type: tea.KeyCtrlC})
+	p.Send(tea.KeyPressMsg{Mod: tea.ModCtrl, Code: 'c'})
 	assert.Error(t, <-done)
 	assert.Nil(t, ctx.Err())
 }
 
 func newModel(view string) *model {
 	return &model{
-		view: view,
+		view: tea.NewView(view),
 		init: false,
 	}
 }
@@ -249,12 +250,12 @@ func newController() bubblon.Controller {
 	return c
 }
 
-func updated(view string) string {
-	return view + updatedPrefix
+func updated(view string) tea.View {
+	return tea.NewView(view + updatedPrefix)
 }
 
-func closed(view string) string {
-	return view + closedPrefix
+func closed(view string) tea.View {
+	return tea.NewView(view + closedPrefix)
 }
 
 func closeModel(ctrl tea.Model) tea.Model {
