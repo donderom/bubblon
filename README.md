@@ -10,9 +10,9 @@
 <img src="logo.png" width="200" alt="The Bubblon Logo">
 </div>
 
-Bubblon is a solution for managing nested [Bubble Tea](https://github.com/charmbracelet/bubbletea) models (or views/screens). This is a typical use case in TUIs, such as navigating from a main list to a sublist when an item is selected. The "canonical" way to structure this is with a [view-switching model](https://www.youtube.com/watch?v=uJ2egAkSkjg), where you keep track which view you're in (e.g., `main` or `sub`) and what item is selected, then render the appropriate model(s) for that view.
+Bubblon is a solution for managing nested [Bubble Tea](https://github.com/charmbracelet/bubbletea) models (or views/screens). This is a typical use case in TUIs, such as navigating from a main list to a sublist when an item is selected. The "canonical" way is to use a [view-switching model](https://www.youtube.com/watch?v=uJ2egAkSkjg), where you keep track of the current view (e.g., `main` or `sub`) and the selected item, then render the appropriate model(s) for that view.
 
- By contrast, Bubblon uses a "model stack" architecture, where the controller determines the current model. Instead of bloating a single `Model` with state for everything, you encapsulate each view in its own `tea.Model` with its own `Update()`, `View()`, and logic. The controller then pushes/pops models on a stack as the user navigates.
+ By contrast, Bubblon uses a "model stack" architecture, where the controller determines the active model. Instead of bloating a single `Model` with state for everything, each view is encapsulated in its own `tea.Model` with its own `Update()`, `View()`, and logic. The controller then pushes/pops models on the stack as the user navigates.
 
 Read [the blog post](https://donderom.com/posts/managing-nested-models-with-bubble-tea/) for a more architectural point of view.
 
