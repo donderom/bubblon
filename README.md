@@ -62,7 +62,7 @@ to:
 
 ```go
 ...
-import "github.com/donderom/bubblon"
+import "github.com/donderom/bubblon/v2"
  
 mainModel := MainModel.New()
 controller, err := bubblon.New(mainModel)
@@ -135,7 +135,7 @@ func (m SomeModel) Update(msg tea.Msg) (tea.Mode, tea.Cmd) {
 Handle the error after program termination:
 
 ```go
-import "github.com/donderom/bubblon"
+import "github.com/donderom/bubblon/v2"
 
 controller, _ := bubblon.New(SomeModel.New())
 program := tea.NewProgram(controller, tea.WithAltScreen())
