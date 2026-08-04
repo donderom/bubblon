@@ -33,6 +33,12 @@ To install Bubblon, use `go get`:
 go get github.com/donderom/bubblon
 ```
 
+The latest version of Bubblon supports Bubble Tea v2, to use it with Bubble Tea v1:
+
+```sh
+go get github.com/donderom/bubblon@v1.2.1
+```
+
 Import the `bubblon` package into your code:
 
 ```sh
@@ -45,7 +51,7 @@ To run the controller, update the Bubble Tea program initialization from:
 
 ```go
 mainModel := MainModel.New()
-program := tea.NewProgram(mainModel, tea.WithAltScreen()) 
+program := tea.NewProgram(mainModel)
 ```
 
 to:
@@ -56,15 +62,16 @@ import "github.com/donderom/bubblon"
  
 mainModel := MainModel.New()
 controller, err := bubblon.New(mainModel)
-program := tea.NewProgram(controller, tea.WithAltScreen()) 
+program := tea.NewProgram(controller)
 ```
 
 At any point within the `MainModel`, you can open a new model by sending a `bubblon.Open()` command:
 
 ```go
 func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-...
-  return m, bubblon.Open(SubModel.New())
+	...
+	return m, bubblon.Open(SubModel.New())
+}
 ```
 
 There are no requirements other than for `MainModel` and `SubModel` to implement the `tea.Model` interface.
@@ -73,8 +80,9 @@ To close the current view and return to the previous one, send the `bubblon.Clos
 
 ```go
 func (m SubModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-...
-  return m, bubblon.Close
+	...
+	return m, bubblon.Close
+}
 ```
 
 When the `SubModel` is closed, the `MainModel` will receive a `bubblon.Closed` message.
@@ -87,8 +95,9 @@ The `bubblon.Replace` command replaces the current model with a new one:
 
 ```go
 func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-...
-  return m, bubblon.Replace(newModel)
+	...
+	return m, bubblon.Replace(newModel)
+}
 ```
 
 It can be thought of as a combination of `bubblon.Close` followed by `bubblon.Open`, but it's internally optimized for performance.
@@ -98,8 +107,9 @@ While `bubblon.Replace` replaces only the current model, `bubblon.ReplaceAll` re
 ```go
 
 func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-...
-  return m, bubblon.ReplaceAll(newModel)
+	...
+	return m, bubblon.ReplaceAll(newModel)
+}
 ```
 
 ### Error propagation
@@ -110,7 +120,7 @@ From any model managed by `bubblon`:
 
 ```go
 func (m SomeModel) Update(msg tea.Msg) (tea.Mode, tea.Cmd) {
-...
+	...
 	err := ...
 	if err != nil {
 		return m, bubblon.Fail(err)
