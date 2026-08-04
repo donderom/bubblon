@@ -33,15 +33,19 @@ To install Bubblon, use `go get`:
 go get github.com/donderom/bubblon/v2@latest
 ```
 
+Import the `bubblon` package into your code:
+
+```go
+import "github.com/donderom/bubblon/v2"
+```
+
 The latest version of Bubblon supports Bubble Tea v2, to use it with Bubble Tea v1:
 
 ```sh
 go get github.com/donderom/bubblon@v1.2.1
 ```
 
-Import the `bubblon` package into your code:
-
-```sh
+```go
 import "github.com/donderom/bubblon"
 ```
 
