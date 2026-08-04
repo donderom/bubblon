@@ -1,4 +1,4 @@
-module github.com/donderom/bubblon
+module github.com/donderom/bubblon/v2
 
 go 1.24.2
 

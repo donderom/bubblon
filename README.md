@@ -30,7 +30,7 @@ Note that the stack approach is suitable only for "fullscreen" views or views th
 To install Bubblon, use `go get`:
 
 ```sh
-go get github.com/donderom/bubblon
+go get github.com/donderom/bubblon/v2@latest
 ```
 
 The latest version of Bubblon supports Bubble Tea v2, to use it with Bubble Tea v1:
