@@ -3,7 +3,7 @@
 # Bubblon
 
 [![Release](https://img.shields.io/github/v/release/donderom/bubblon.svg?style=flat-square&color=019aca)](https://github.com/donderom/bubblon/releases)
-[![GoDoc](https://img.shields.io/badge/go.dev-docs-01ade3?style=flat-square&logo=go)](https://pkg.go.dev/github.com/donderom/bubblon)
+[![GoDoc](https://img.shields.io/badge/go.dev-docs-01ade3?style=flat-square&logo=go)](https://pkg.go.dev/github.com/donderom/bubblon/v2)
 [![Build](https://img.shields.io/github/actions/workflow/status/donderom/bubblon/build.yml?style=flat-square&logo=github&color=b199da)](https://github.com/donderom/bubblon/actions/workflows/build.yml)
 [![License](https://img.shields.io/badge/license-MIT-fec4e2?style=flat-square)](https://github.com/donderom/bubblon/blob/main/LICENSE)
 
